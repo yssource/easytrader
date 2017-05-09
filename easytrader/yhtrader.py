@@ -6,6 +6,7 @@ import logging
 import os
 import random
 import re
+import time
 
 import requests
 
@@ -244,6 +245,31 @@ class YHTrader(WebTrader):
         """
         return self.do(self.config['current_deal'])
 
+    def get_his_deal(self, bgd, edd):
+        """
+         <905266420@qq.com>
+        获取历史时间段内的全部成交列表
+            e.g.: get_deal( bgd="2016-07-14", edd="2016-08-14" )
+            遇到提示“系统超时请重新登录”或者https返回状态码非200或者其他异常情况会返回False
+        """
+        data = {
+            "sdate": bgd,
+            "edate": edd
+        }
+
+        try:
+            response = self.s.post("https://www.chinastock.com.cn/trade/webtrade/stock/stock_cj_query.jsp", data=data,
+                                   cookies=self.cookie)
+            if response.status_code != 200:
+                return False
+            if response.text.find("重新登录") != -1:
+                return False
+            res = self.format_response_data(response.text)
+            return res
+        except Exception as e:
+            log.warning("撤单出错".format(e))
+            return False
+
     def get_deal(self, date=None):
         """
         @Contact: Emptyset <21324784@qq.com>
@@ -279,12 +305,14 @@ class YHTrader(WebTrader):
         :param price: 买入价格
         :param amount: 买入股数
         :param volume: 买入总金额 由 volume / price 取整， 若指定 price 则此参数无效
-        :param entrust_prop: 委托类型 'limit' 限价单 , 'market'　市价单
+        :param entrust_prop: 委托类型 'limit' 限价单 , 'market'　市价单, 'market_cancel' 五档即时成交剩余转限制
         """
         market_type = helpers.get_stock_type(stock_code)
         bsflag = None
         if entrust_prop == 'limit':
             bsflag = '0B'
+        elif entrust_prop == 'market_cancel':
+            bsflag = '0d'
         elif market_type == 'sh':
             bsflag = '0q'
         elif market_type == 'sz':
@@ -304,12 +332,14 @@ class YHTrader(WebTrader):
         :param price: 卖出价格
         :param amount: 卖出股数
         :param volume: 卖出总金额 由 volume / price 取整， 若指定 amount 则此参数无效
-        :param entrust_prop: str 委托类型 'limit' 限价单 , 'market'　市价单
+        :param entrust_prop: str 委托类型 'limit' 限价单 , 'market'　市价单, 'market_cancel' 五档即时成交剩余转限制
         """
         market_type = helpers.get_stock_type(stock_code)
         bsflag = None
         if entrust_prop == 'limit':
             bsflag = '0S'
+        elif entrust_prop == 'market_cancel':
+            bsflag = '0i'
         elif market_type == 'sh':
             bsflag = '0r'
         elif market_type == 'sz':
@@ -417,6 +447,7 @@ class YHTrader(WebTrader):
         log.debug("{}".format(self.config['trade_api']))
         log.debug("{}".format(trade_params))
         log.debug('trade response: %s' % trade_response.text)
+        time.sleep(0.5)  # 避免银河 '请求频繁，请稍后再试' 的错误
         return trade_response.json()
 
     def __get_trade_need_info(self, stock_code):
@@ -571,3 +602,23 @@ class YHTrader(WebTrader):
         ser = df.iloc[0]
         return dict(high_amount=int(ser['申购上限']), enable_amount=int(ser['账户额度']),
                     last_price=float(ser['价格']))
+
+    def auto_ipo(self):
+        """
+        自动打新
+        :return: list(dict) dict 格式为 {'申购股票': 申购返回结果}
+        """
+        ipo_info, _ = self.get_ipo_info()
+        ipo_info.fillna(0, inplace=True)
+
+        res = []
+        for _, row in ipo_info.iterrows():
+            if row['账户额度'] <= 0:
+                continue
+
+            ipo_amount = min(row['账户额度'], row['申购上限'])
+            response = self.buy(row['代码'], row['价格'], ipo_amount)
+            res.append({
+                row['名称']: response
+            })
+        return res
