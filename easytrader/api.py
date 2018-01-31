@@ -1,19 +1,16 @@
 # coding=utf-8
 import logging
 
-from .gftrader import GFTrader
 from .joinquant_follower import JoinQuantFollower
-from .ricequant_follower import RiceQuantFollower
 from .log import log
+from .ricequant_follower import RiceQuantFollower
 from .xq_follower import XueQiuFollower
 from .xqtrader import XueQiuTrader
-from .yhtrader import YHTrader
-from .xczqtrader import XCZQTrader
 
 
 def use(broker, debug=True, **kwargs):
     """用于生成特定的券商对象
-    :param broker:券商名支持 ['yh', 'YH', '银河'] ['gf', 'GF', '广发']
+    :param broker:券商名支持 ['yh_client', '银河客户端'] ['ht_client', '华泰客户端']
     :param debug: 控制 debug 日志的显示, 默认为 True
     :param initial_assets: [雪球参数] 控制雪球初始资金，默认为一百万
     :return the class of trader
@@ -26,17 +23,20 @@ def use(broker, debug=True, **kwargs):
     """
     if not debug:
         log.setLevel(logging.INFO)
-    if broker.lower() in ['yh', '银河']:
-        return YHTrader(debug=debug)
     elif broker.lower() in ['xq', '雪球']:
         return XueQiuTrader(**kwargs)
-    elif broker.lower() in ['gf', '广发']:
-        return GFTrader(debug=debug)
     elif broker.lower() in ['yh_client', '银河客户端']:
         from .yh_clienttrader import YHClientTrader
         return YHClientTrader()
-    elif broker.lower() in ['xczq', '湘财证券']:
-        return XCZQTrader()
+    elif broker.lower() in ['ht_client', '华泰客户端']:
+        from .ht_clienttrader import HTClientTrader
+        return HTClientTrader()
+    elif broker.lower() in ['gj_client', '国金客户端']:
+        from .gj_clienttrader import GJClientTrader
+        return GJClientTrader()
+    elif broker.lower() in ['ths', '同花顺客户端']:
+        from .clienttrader import ClientTrader
+        return ClientTrader()
 
 
 def follower(platform, **kwargs):

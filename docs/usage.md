@@ -4,122 +4,86 @@
 import easytrader
 ```
 
-**设置账户**:
-
-**银河**
-
-```python
-user = easytrader.use('yh') # 银河支持 ['yh', 'YH', '银河']
-```
-
-** 银河客户端**
-
-```python
-user = easytrader.use('yh_client') # 银河客户端支持 ['yh_client', 'YH_CLIENT', '银河客户端']
-```
-
-** 广发**
-
-```python
-user = easytrader.use('gf') # 广发支持 ['gf', 'GF', '广发']
-```
-
-**湘财证券**
-
-```python
-user = easytrader.use('xczq') # 湘财证券支持 ['xczq', '湘财证券']
-```
-
-
-# 抓取登陆所需的密码
-
-使用 `easytrader` 的广发，银河 `web` 版本时，需要抓取对应券商的加密密码
-
-** 银河 web 版本**
-
-**推荐获取方法:**
-
-在 IE 浏览器中打开下面这个网页， [一键获取银河加密密码](http://htmlpreview.github.io/?https://github.com/shidenggui/assets/blob/master/easytrader/get_yh_password.html), 若有弹框的话选择允许控件运行，按步骤操作就可以获得密码
-
-**其他方式**
-
-* [银河web获取加密密码的图文教程, 其他类似](https://shimo.im/doc/kvazIHNTRvYr7iqe)(需要安装 fildder 软件)
-* [如何获取配置所需信息, 也可参考此文章](https://www.jisilu.cn/question/42707)
-
-**广发**
-
-参考此文档 [INSTALL4Windows.md](other/INSTALL4Windows.md)
-
-参考银河的获取密码的其他方式
-
-
-**雪球**
-
- 雪球配置中 `username` 为邮箱, `account` 为手机, 填两者之一即可，另一项改为 `""`, 密码直接填写登录的明文密码即可，不需要抓取 `POST` 的密码
+# 设置券商类型
 
 **银河客户端**
 
-银河客户端直接使用明文的账号和密码即可
+```python
+user = easytrader.use('yh_client')
+```
+**华泰客户端**
+
+```python
+user = easytrader.use('ht_client')
+```
+
+**国金客户端**
+
+```python
+user = easytrader.use('gj_client') 
+```
+
+**通用同花顺客户端**
 
 
-# 登录帐号
+```python
+user = easytrader.use('ths')
+```
+
+注: 通用同花顺客户端是指对应券商官网提供的基于同花顺修改的软件版本，类似银河的双子星(同花顺版本), 海王星(通达信版本)
+
+
+# 设置账户信息
 
 登陆账号有两种方式，`使用参数` 和 `使用配置文件`
 
-** 参数登录(推荐)**
+使用通用同花顺客户端不支持自动登陆，所以无需设置，参看下文`直接连接通用同花顺客户端`
+
+**参数登录(推荐)**
 
 ```
-user.prepare(user='用户名', password='银河，广发web端需要券商加密后的密码, 雪球、银河客户端为明文密码')
+user.prepare(user='用户名', password='雪球、银河客户端为明文密码', comm_password='华泰通讯密码，其他券商不用')
 ```
 
-**注:**雪球额外有个 account 参数，见上文介绍
-
-** 使用配置文件**
+**使用配置文件**
 
 ```python
-user.prepare('/path/to/your/yh.json') // 或者 zq.json 或者 yh_client.json 等配置文件路径
+user.prepare('/path/to/your/yh_client.json') // 配置文件路径
 ```
 
 **注**: 使用配置文件模式, 配置文件需要自己用编辑器编辑生成, 请勿使用记事本, 推荐使用 [notepad++](https://notepad-plus-plus.org/zh/) 或者 [sublime text](http://www.sublimetext.com/)
 
-*格式如下*
+**格式如下**
 
-银河 
-
-```
-{
-    "inputaccount": "客户号",
-    "trdpwd": "加密后的密码"
-}
-```
-
-银河客户端
+银河/国金客户端
 
 ```
 {
-  "user": "银河用户名",
-  "password": "银河明文密码"
+  "user": "用户名",
+  "password": "明文密码"
 }
 
 ```
 
-广发
+华泰客户端
 
 ```
 {
-  "username": "加密的客户号",
-  "password": "加密的密码"
+  "user": "华泰用户名",
+  "password": "华泰明文密码"
+  "comm_password": "华泰通讯密码"
 }
-```
-
-湘菜证券
 
 ```
-{
-  "account": "客户号",
-  "password": "密码"
-}
+
+# 直接连接通用同花顺客户端
+
+需要先手动登陆客户端到交易窗口，然后运用下面的代码连接交易窗口
+
+```python
+user.connect(r'客户端xiadan.exe路径') # 类似 r'C:\htzqzyb2\xiadan.exe' 
 ```
+
 
 ### 交易相关
 
@@ -166,28 +130,6 @@ user.position
   '证券名称': '工商银行'}]
 ```
 
-#### 获取今日委托单
-```python
-user.entrust
-```
-
-**return**
-
-```python
-[{'business_amount': '成交数量',
-  'business_price': '成交价格',
-  'entrust_amount': '委托数量',
-  'entrust_bs': '买卖方向',
-  'entrust_no': '委托编号',
-  'entrust_price': '委托价格',
-  'entrust_status': '委托状态',  # 废单 / 已报
-  'report_time': '申报时间',
-  'stock_code': '证券代码',
-  'stock_name': '证券名称'}]
-
-```
-
-
 #### 买入:
 
 ```python
@@ -197,7 +139,7 @@ user.buy('162411', price=0.55, amount=100)
 **return**
 
 ```python
-{'orderid': 'xxxxxxxx', 'ordersno': '1111'}
+{'entrust_no': 'xxxxxxxx'}
 ```
 
 #### 卖出:
@@ -209,12 +151,10 @@ user.sell('162411', price=0.55, amount=100)
 **return**
 
 ```python
-{'orderid': 'xxxxxxxx', 'ordersno': '1111'}
+{'entrust_no': 'xxxxxxxx'}
 ```
 
 #### 一键打新
-
-##### 银河
 
 ```python
 user.auto_ipo()
@@ -222,29 +162,21 @@ user.auto_ipo()
 
 #### 撤单
 
-##### 银河
-
 ```python
-user.cancel_entrust('委托单号', '股票代码')
+user.cancel_entrust('buy/sell 获取的 entrust_no')
 ```
 
 **return**
 
 ```
-{'msgok': '撤单申报成功'}
+{'message': '撤单申报成功'}
 ```
 
-##### 银河客户端
 
-
-```python
-user.cancel_entrust('股票6位代码,不带前缀', "撤单方向，可使用 ['buy', 'sell']"
-```
-
-#### 查询当日成交
+#### 当日成交
 
 ```python
-user.current_deal
+user.today_trades
 ```
 
 **return**
@@ -263,10 +195,10 @@ user.current_deal
   '证券名称': '华宝油气'}]
 ```
 
-#### 今日委托
+#### 当日委托
 
 ```python
-user.entrust
+user.today_entrusts
 ```
 
 **return**
@@ -300,107 +232,6 @@ user.entrust
   '证券名称': '华宝油气'}]
 ```
 
-####  ipo 打新
-
-*银河*
-
-```python
-user.get_ipo_info()
-```
-
-**return**
-
-
-```python
-(df_taoday_ipo, df_ipo_limit), 分别是当日新股申购列表信息， 申购额度。
-        df_today_ipo
-            代码	名称	价格	账户额度	申购下限	申购上限	证券账号	交易所	发行日期
-        0	2830	名雕股份	16.53	17500	500	xxxxx	xxxxxxxx	深A	20161201
-        1	732098	森特申购	9.18	27000	1000	xxxxx	xxxxxxx	沪A	20161201
-
-        df_ipo_limit:
-            市场	证券账号	账户额度
-        0	深圳	xxxxxxx	xxxxx
-        1	上海	xxxxxxx	xxxxx
-```
-
-然后使用 `user.buy` 接口按返回的价格数量买入对应新股就可以了
-
-#### 查询交割单
-
-需要注意通常券商只会返回有限天数最新的交割单，如查询2015年整年数据, 华泰只会返回年末的90天的交割单
-
-```python
-user.exchangebill   # 查询最近30天的交割单
-
-user.get_exchangebill('开始日期', '截止日期')   # 指定查询时间段, 日期格式为 "20160214"
-```
-**return**
-```python
-{["entrust_bs": "操作", # "1":"买入", "2":"卖出", " ":"其他"
-  "business_balance": "成交金额",
-  "stock_name": "证券名称",
-  "fare1": "印花税",
-  "occur_balance": "发生金额",
-  "stock_account": "股东帐户",
-  "business_name": "摘要", # "证券买入", "证券卖出", "基金拆分", "基金合并", "交收证券冻结", "交收证券冻结取消", "开放基金赎回", "开放基金赎回返款", "基金资金拨入", "基金资金拨出", "交收资金冻结取消", "开放基金申购"
-  "farex": "",
-  "fare0": "手续费",
-  "stock_code": "证券代码",
-  "occur_amount": "成交数量",
-  "date": "成交日期",
-  "post_balance": "本次余额",
-  "fare2": "其他杂费",
-  "fare3": "",
-  "entrust_no": "合同编号",
-  "business_price": "成交均价",
-]}
-
-```
-
-#### 基金申购
-
-##### 银河
-
-```
-user.fundpurchase(stock_code, amount):
-```
-
-#### 基金赎回
-
-##### 银河
-
-```
-user.fundredemption(stock_code, amount):
-```
-
-#### 基金认购
-
-##### 银河
-
-```
-user.fundsubscribe(stock_code, amount):
-```
-
-
-#### 基金分拆
-
-##### 银河
-
-```
-user.fundsplit(stock_code, amount):
-```
-
-#### 基金合并
-
-##### 银河
-
-```
-user.fundmerge(stock_code, amount):
-```
-
-
-
 
 #### 查询今天可以申购的新股信息
 
@@ -418,6 +249,33 @@ print(ipo_data)
   'price': 发行价,
   'apply_code': '申购代码'}]
 ```
+
+#### 退出客户端软件
+
+```
+user.exit()
+```
+
+### 远端服务器模式
+
+#### 在服务器上启动服务
+
+```python
+from easytrader import server
+
+server.run(port=1430) # 默认端口为 1430
+```
+
+#### 远程客户端调用
+
+```python
+from easytrader import remoteclient
+
+user = remoteclient.use('使用客户端类型，可选 yh_client, ht_client 等', host='服务器ip', port='服务器端口，默认为1430')
+
+其他用法同上
+```
+
 
 #### 雪球组合调仓
 
@@ -516,13 +374,12 @@ follower.follow(***, entrust_prop='market')
 follower.follow(***, send_interval=30) # 设置下单间隔为 30 s
 ```
 
-
 ### 命令行模式
 
 #### 登录
 
 ```
- python cli.py --use yh --prepare yh.json
+ python cli.py --use yh --prepare gf.json
 ```
 
 注: 此时会生成 `account.session` 文件保存生成的 `user` 对象
