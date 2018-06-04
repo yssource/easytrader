@@ -1,5 +1,4 @@
 # coding: utf-8
-
 import os
 import sys
 import time
@@ -10,8 +9,10 @@ sys.path.append('.')
 
 TEST_CLIENTS = os.environ.get('EZ_TEST_CLIENTS', 'yh')
 
+IS_WIN_PLATFORM = sys.platform != 'darwin'
 
-@unittest.skipUnless('yh' in TEST_CLIENTS, 'skip yh test')
+
+@unittest.skipUnless('yh' in TEST_CLIENTS and IS_WIN_PLATFORM, 'skip yh test')
 class TestYhClientTrader(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -21,7 +22,8 @@ class TestYhClientTrader(unittest.TestCase):
 
         # input your test account and password
         cls._ACCOUNT = os.environ.get('EZ_TEST_YH_ACCOUNT') or 'your account'
-        cls._PASSWORD = os.environ.get('EZ_TEST_YH_password') or 'your password'
+        cls._PASSWORD = os.environ.get(
+            'EZ_TEST_YH_password') or 'your password'
 
         cls._user = easytrader.use('yh_client')
         cls._user.prepare(user=cls._ACCOUNT, password=cls._PASSWORD)
@@ -56,7 +58,7 @@ class TestYhClientTrader(unittest.TestCase):
         self._user.auto_ipo()
 
 
-@unittest.skipUnless('ht' in TEST_CLIENTS, 'skip ht test')
+@unittest.skipUnless('ht' in TEST_CLIENTS and IS_WIN_PLATFORM, 'skip ht test')
 class TestHTClientTrader(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -66,11 +68,16 @@ class TestHTClientTrader(unittest.TestCase):
 
         # input your test account and password
         cls._ACCOUNT = os.environ.get('EZ_TEST_HT_ACCOUNT') or 'your account'
-        cls._PASSWORD = os.environ.get('EZ_TEST_HT_password') or 'your password'
-        cls._COMM_PASSWORD = os.environ.get('EZ_TEST_HT_comm_password') or 'your comm password'
+        cls._PASSWORD = os.environ.get(
+            'EZ_TEST_HT_password') or 'your password'
+        cls._COMM_PASSWORD = os.environ.get(
+            'EZ_TEST_HT_comm_password') or 'your comm password'
 
         cls._user = easytrader.use('ht_client')
-        cls._user.prepare(user=cls._ACCOUNT, password=cls._PASSWORD, comm_password=cls._COMM_PASSWORD)
+        cls._user.prepare(
+            user=cls._ACCOUNT,
+            password=cls._PASSWORD,
+            comm_password=cls._COMM_PASSWORD)
 
     def test_balance(self):
         time.sleep(3)
@@ -100,27 +107,6 @@ class TestHTClientTrader(unittest.TestCase):
 
     def test_auto_ipo(self):
         self._user.auto_ipo()
-
-
-class TestClientTrader(unittest.TestCase):
-    def test_connect(self):
-        from easytrader.clienttrader import ClientTrader
-        c = ClientTrader()
-
-        with self.assertRaises(ValueError):
-            c.connect()
-
-    def test_auto_ipo_with_failed_situation(self):
-        from easytrader.clienttrader import ClientTrader
-        c = ClientTrader()
-        with mock.patch.object(c, '_switch_left_menus'):
-            for case, res in [
-                ([], {'message': '今日无新股'}),
-                ([{'申购数量': 0}], {'message': '没有发现可以申购的新股'})
-            ]:
-                with mock.patch.object(c, '_get_grid_data') as ipo_list_mock:
-                    ipo_list_mock.return_value = case
-                    self.assertDictEqual(c.auto_ipo(), res)
 
 
 if __name__ == '__main__':

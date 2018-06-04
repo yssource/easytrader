@@ -45,6 +45,8 @@ user = easytrader.use('ths')
 user.prepare(user='用户名', password='雪球、银河客户端为明文密码', comm_password='华泰通讯密码，其他券商不用')
 ```
 
+注: 雪球比较特殊，见下列配置文件格式
+
 **使用配置文件**
 
 ```python
@@ -76,12 +78,23 @@ user.prepare('/path/to/your/yh_client.json') // 配置文件路径
 
 ```
 
+雪球
+
+```
+{
+  "cookies": "雪球 cookies，登陆后获取，获取方式见 https://smalltool.github.io/2016/08/02/cookie/",
+  "portfolio_code": "组合代码(例:ZH818559)",
+  "portfolio_market": "交易市场(例:us 或者 cn 或者 hk)"
+}
+
+```
+
 # 直接连接通用同花顺客户端
 
 需要先手动登陆客户端到交易窗口，然后运用下面的代码连接交易窗口
 
 ```python
-user.connect(r'客户端xiadan.exe路径') # 类似 r'C:\htzqzyb2\xiadan.exe' 
+user.connect(r'客户端xiadan.exe路径') # 类似 r'C:\htzqzyb2\xiadan.exe'
 ```
 
 
@@ -141,6 +154,8 @@ user.buy('162411', price=0.55, amount=100)
 ```python
 {'entrust_no': 'xxxxxxxx'}
 ```
+
+注: 系统可以配置是否返回成交回报。如果没配的话默认返回 `{"message": "success"}`
 
 #### 卖出:
 
@@ -336,7 +351,7 @@ enjoy it
 
 ```
 xq_follower = easytrader.follower('xq')
-xq_follower.login(user='xq用户名', password='xq密码')
+xq_follower.login(cookies='雪球 cookies，登陆后获取，获取方式见 https://smalltool.github.io/2016/08/02/cookie/')
 ```
 
 #### 连接 follower 和 trader
@@ -350,6 +365,8 @@ xq_follower.follow(xq_user, 'xq组合ID，类似ZH123456', total_assets=100000)
 
 * 这里可以设置 total_assets, 为当前组合的净值对应的总资金额度, 具体可以参考参数说明
 * 或者设置 initial_assets, 这时候总资金额度为 initial_assets * 组合净值
+
+* 雪球额外支持 adjust_sell 参数，决定是否根据用户的实际持仓数调整卖出股票数量，解决雪球根据百分比调仓时计算出的股数有偏差的问题。当卖出股票数大于实际持仓数时，调整为实际持仓数。目前仅在银河客户端测试通过。 当 users 为多个时，根据第一个 user 的持仓数决定
 
 
 #### 多用户跟踪多策略
